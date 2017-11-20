@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# Copyright (c) 2009-2016, The Linux Foundation. All rights reserved.
+# Copyright (c) 2009-2017, The Linux Foundation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -82,7 +82,7 @@ start_msm_irqbalance_8939()
 {
 	if [ -f /system/bin/msm_irqbalance ]; then
 		case "$platformid" in
-		    "239" | "293" | "294" | "295" | "304" | "313")
+		    "239" | "293" | "294" | "295" | "304" | "313" | "338")
 			start msm_irqbalance;;
 		esac
 	fi
@@ -219,7 +219,7 @@ case "$target" in
                   ;;
         esac
         ;;
-    "msm8994" | "msm8992" | "msmcobalt")
+    "msm8994" | "msm8992" | "msm8998")
         start_msm_irqbalance
         ;;
     "msm8996")
@@ -259,23 +259,25 @@ case "$target" in
         else
              hw_platform=`cat /sys/devices/system/soc/soc0/hw_platform`
         fi
+#bug250189 niqingqiang.wt 20170316 modify for disable the navigationBar begin
         case "$soc_id" in
-             "294" | "295" | "303" | "307" | "308" | "309" | "313")
+             "294" | "295" | "303" | "307" | "308" | "309" | "313" | "320")
                   case "$hw_platform" in
                        "Surf")
-                                    setprop qemu.hw.mainkeys 0
+#                                    setprop qemu.hw.mainkeys 0
                                     ;;
                        "MTP")
-                                    setprop qemu.hw.mainkeys 1
+#                                    setprop qemu.hw.mainkeys 0
                                     ;;
                        "RCM")
-                                    setprop qemu.hw.mainkeys 0
+#                                    setprop qemu.hw.mainkeys 0
                                     ;;
                   esac
                   ;;
        esac
         ;;
     "msm8953")
+#bug250189 niqingqiang.wt 20170316 modify for disable the navigationBar end
 	start_msm_irqbalance_8939
         if [ -f /sys/devices/soc0/soc_id ]; then
             soc_id=`cat /sys/devices/soc0/soc_id`
@@ -289,13 +291,13 @@ case "$target" in
              hw_platform=`cat /sys/devices/system/soc/soc0/hw_platform`
         fi
         case "$soc_id" in
-             "293" | "304" )
+             "293" | "304" | "338" )
                   case "$hw_platform" in
                        "Surf")
                                     setprop qemu.hw.mainkeys 0
                                     ;;
                        "MTP")
-                                    setprop qemu.hw.mainkeys 1
+                                    setprop qemu.hw.mainkeys 0
                                     ;;
                        "RCM")
                                     setprop qemu.hw.mainkeys 0
@@ -304,17 +306,6 @@ case "$target" in
                   ;;
        esac
         ;;
-esac
-
-bootmode=`getprop ro.bootmode`
-emmc_boot=`getprop ro.boot.emmc`
-case "$emmc_boot"
-    in "true")
-        if [ "$bootmode" != "charger" ]; then # start rmt_storage and rfs_access
-            start rmt_storage
-            start rfs_access
-        fi
-    ;;
 esac
 
 #
@@ -350,10 +341,18 @@ cp -r /firmware/image/modem_pr/mbn_ota2.txt /data/misc/radio/modem_config/mbn_ot
 chown -hR radio.radio /data/misc/radio/modem_config/mbn_ota2.txt
 cp -r /firmware/image/modem_pr/mbn_ota3.txt /data/misc/radio/modem_config/mbn_ota3.txt
 chown -hR radio.radio /data/misc/radio/modem_config/mbn_ota3.txt
-cp -r /firmware/image/modem_pr/mbn_ota4.txt /data/misc/radio/modem_config/mbn_ota4.txt
-chown -hR radio.radio /data/misc/radio/modem_config/mbn_ota4.txt
-cp -r /firmware/image/modem_pr/mbn_ota5.txt /data/misc/radio/modem_config/mbn_ota5.txt
-chown -hR radio.radio /data/misc/radio/modem_config/mbn_ota5.txt
-cp -r /firmware/image/modem_pr/mbn_ota6.txt /data/misc/radio/modem_config/mbn_ota6.txt
-chown -hR radio.radio /data/misc/radio/modem_config/mbn_ota6.txt
 echo 1 > /data/misc/radio/copy_complete
+
+#check build variant for printk logging
+#current default minimum boot-time-default
+buildvariant=`getprop ro.build.type`
+case "$buildvariant" in
+    "userdebug" | "eng")
+        #set default loglevel to KERN_INFO
+        echo "6 6 1 7" > /proc/sys/kernel/printk
+        ;;
+    *)
+        #set default loglevel to KERN_WARNING
+        echo "4 4 1 4" > /proc/sys/kernel/printk
+        ;;
+esac
