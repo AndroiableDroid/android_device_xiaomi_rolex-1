@@ -1,4 +1,5 @@
-# Copyright (C) 2017 The LineageOS Project
+#
+# Copyright 2015 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,15 +12,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-$(call inherit-product, device/xiaomi/rolex/full_rolex.mk)
+# This file is executed by build/envsetup.sh, and can use anything
+# defined in envsetup.sh.
+#
+# In particular, you can add lunch options with the add_lunch_combo
+# function: add_lunch_combo generic-eng
 
-# Inherit some common CM stuff.
-$(call inherit-product, vendor/cm/config/common_full_phone.mk)
-
-PRODUCT_NAME := lineage_rolex
-BOARD_VENDOR := Xiaomi
-TARGET_VENDOR := Xiaomi
-PRODUCT_DEVICE := rolex
-TARGET_DEVICE := rolex
-PRODUCT_GMS_CLIENTID_BASE := android-xiaomi
+for var in eng user userdebug; do
+  add_lunch_combo lineage_rolex-$var
+done
